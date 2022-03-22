@@ -1,10 +1,11 @@
 from torch.utils.data import Dataset, DataLoader
-import torch
 import os
 import numpy as np
 from scipy.io import loadmat
 from torchvision import transforms
 from PIL import Image
+import matplotlib.pyplot as plt
+import torch
 
 
 # load mnist data
@@ -396,6 +397,26 @@ class MultiDomainDataLoader(object):
             return self.data[(self.batch - 1) * self.batch_size: self.batch * self.batch_size]
 
 
+# display an image
+def visualize_img(img):
+    """
+    Args:
+        img: image Tensor of size [C, H, W]
+    """
+    # img: [C, H, W]
+    # reverse normalize
+    img = img * 0.5 + 0.5
+    # reverse ToTensor scaling
+    img *= 255
+    # convert type to uint8
+    img = img.type(torch.uint8)
+    # Tensor to PIL
+    to_pil = transforms.ToPILImage()
+    img = to_pil(img)
+    plt.imshow(img)
+    plt.show()
+
+
 # test d5 dataset
 def test_d5():
     data_path = './data/Digit-Five'
@@ -411,6 +432,7 @@ def test_d5():
     d5 = DigitFiveDataset(data_path, train=True, transform=transform)
     d5_loader = DataLoader(d5, batch_size=10, shuffle=True)
 
+    # d5 loader (aligned dataset)
     for batch, data in enumerate(d5_loader):
         print('batch:', batch)
         # type(data): dict
@@ -418,6 +440,13 @@ def test_d5():
         # data[DOMAIN]['image']: [N, C, H, W]
         print(data['mnist']['label'].size())
         # data[DOMAIN]['label']: [N,]
+
+
+        # visualize image
+        for img in data['mnist']['image']:
+            # img: [C, H, W]
+            visualize_img(img)
+
         break
 
 
