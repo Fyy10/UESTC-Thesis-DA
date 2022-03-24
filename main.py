@@ -184,8 +184,8 @@ def main():
 
     # load model if specified
     if args.load is not None:
-        feature_extractor.load_state_dict(args.load + '.feat')
-        classifier.load_state_dict(args.load + '.cls')
+        feature_extractor.load_state_dict(torch.load(args.load + '.feat'))
+        classifier.load_state_dict(torch.load(args.load + '.cls'))
 
     if not args.eval:
         train(args, feature_extractor, classifier, train_loader)
