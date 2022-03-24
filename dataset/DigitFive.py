@@ -302,10 +302,11 @@ class DigitFiveDatasetSingle(Dataset):
 
 
 # DigitFiveDataset
-# NOTE: domains are ALIGNED
 class DigitFiveDataset(Dataset):
     """
     `Digit-Five` Dataset
+
+    NOTE: domains are ALIGNED in this dataset, NOT suitable for training
 
     Args:
         data_path (string): Source path of Digit-Five dataset
