@@ -1,34 +1,49 @@
 import torch.nn as nn
 import torchvision.models
-# import torch.nn.functional as F
 import torch
 
 
 # LeNet-5
 class LeNet(nn.Module):
+    """
+    `LeNet-5` Model
+
+    Input size: 32x32
+
+    Feature dimension: 84
+    """
     def __init__(self):
         super(LeNet, self).__init__()
-        # input: [N, 3, 28, 28]
+        # input: [N, 3, 32, 32]
         # output: [N, 84]
         self.conv1 = nn.Conv2d(3, 6, (5, 5), padding=2)
         self.avgpool = nn.AvgPool2d((2, 2), stride=2)
         self.conv2 = nn.Conv2d(6, 16, (5, 5), padding=0)
-        self.fc1 = nn.Linear(5 * 5 * 16, 120)
+        # for [28, 28]
+        # self.fc1 = nn.Linear(5 * 5 * 16, 120)
+        # for [32, 32]
+        self.fc1 = nn.Linear(6 * 6 * 16, 120)
         self.fc2 = nn.Linear(120, 84)
 
     def forward(self, x):
-        # x: [N, 3, 28, 28]
+        # x: [N, 3, 28, 28] for [28, 28]
+        # x: [N, 3, 32, 32] for [32, 32]
         # input: [N, C, H, W]
         x = torch.sigmoid(self.conv1(x))
-        # [N, 6, 28, 28]
+        # [N, 6, 28, 28] for [28, 28]
+        # [N, 6, 32, 32] for [32, 32]
         x = self.avgpool(x)
-        # [N, 6, 14, 14]
+        # [N, 6, 14, 14] for [28, 28]
+        # [N, 6, 16, 16] for [32, 32]
         x = torch.sigmoid(self.conv2(x))
-        # [N, 16, 10, 10]
-        x =self.avgpool(x)
-        # [N, 16, 5, 5]
+        # [N, 16, 10, 10] for [28, 28]
+        # [N, 16, 12, 12] for [32, 32]
+        x = self.avgpool(x)
+        # [N, 16, 5, 5] for [28, 28]
+        # [N, 16, 6, 6] for [32, 32]
         x = torch.flatten(x, 1)
-        # [N, 16 * 5 * 5]
+        # [N, 16 * 5 * 5] for [28, 28]
+        # [N, 16 * 6 * 6] for [32, 32]
         x = torch.sigmoid(self.fc1(x))
         # [N, 120]
         x = torch.sigmoid(self.fc2(x))
@@ -165,7 +180,7 @@ def test_lenet():
     classifier = Classifier(84, 10)
     print(feature)
     print(classifier)
-    data = torch.randn((10, 3, 28, 28))
+    data = torch.randn((10, 3, 32, 32))
     feat = feature(data)
     print('feature:', feat.size())
     out = classifier(feat)
