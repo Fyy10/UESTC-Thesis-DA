@@ -218,13 +218,16 @@ def train(args, feature_extractor, classifier, dataloader):
     exp_name_id = exp_name + '_' + str(exp_id)
 
     # record file
-    record_file = open(os.path.join(args.record_folder, exp_name_id + '.log'), 'w')
+    # record_file = open(os.path.join(args.record_folder, exp_name_id + '.log'), 'w')
 
     # write args to record
-    print(args, file=record_file)
+    # print(args, file=record_file)
 
     # tensorboard writer
     writer = SummaryWriter(os.path.join(args.record_folder, exp_name_id))
+    sample_data = next(iter(dataloader))
+    writer.add_graph(feature_extractor, input_to_model=sample_data[args.source]['image'].to(args.device))
+    writer.add_text(exp_name_id, str(args.__dict__))
 
     # loss function
     cross_entropy = nn.CrossEntropyLoss()
@@ -237,6 +240,7 @@ def train(args, feature_extractor, classifier, dataloader):
         optim_c = torch.optim.Adam(classifier.parameters(), lr=args.lr)
 
     n_iter = 0
+    best_acc = 0
     for epoch in range(args.num_epoch):
         print('Epoch:', epoch)
         for batch, data in enumerate(tqdm(dataloader)):
@@ -263,8 +267,8 @@ def train(args, feature_extractor, classifier, dataloader):
             loss = cross_entropy(pred, label)
 
             # write loss and accuracy
-            writer.add_scalar('train/loss_source', loss.item(), n_iter)
-            writer.add_scalar('train/acc_source', batch_acc, n_iter)
+            writer.add_scalar('train/' + args.source + '_to_' + args.target + '_loss', loss.item(), n_iter)
+            writer.add_scalar('train/' + args.source + '_to_' + args.target + '_acc', batch_acc, n_iter)
 
             # backward
             loss.backward()
@@ -275,18 +279,23 @@ def train(args, feature_extractor, classifier, dataloader):
 
             n_iter += 1
 
-        acc = evaluate(args, feature_extractor, classifier, dataloader, args.target)
-        writer.add_scalar('train/acc_target', acc, epoch)
+        acc_source = evaluate(args, feature_extractor, classifier, dataloader, args.source)
+        writer.add_scalar('eval/' + args.source + '_to_' + args.target + '_acc_source', acc_source, epoch)
+        acc_target = evaluate(args, feature_extractor, classifier, dataloader, args.target)
+        writer.add_scalar('eval/' + args.source + '_to_' + args.target + '_acc_target', acc_target, epoch)
+
+        # update best_acc (should only use source acc)
+        if acc_source > best_acc:
+            best_acc = acc_source
+            # save model if specified
+            if args.save:
+                torch.save(feature_extractor.state_dict(), os.path.join(args.checkpoint, exp_name_id + '.feat'))
+                torch.save(classifier.state_dict(), os.path.join(args.checkpoint, exp_name_id + '.cls'))
 
     # close record file
-    record_file.close()
+    # record_file.close()
     # close writer
     writer.close()
-
-    # save model if specified
-    if args.save:
-        torch.save(feature_extractor.state_dict(), os.path.join(args.checkpoint, exp_name_id + '.feat'))
-        torch.save(classifier.state_dict(), os.path.join(args.checkpoint, exp_name_id + '.cls'))
 
 
 # evaluate
