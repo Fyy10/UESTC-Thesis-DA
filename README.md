@@ -164,3 +164,11 @@ A single fully-connected layer that maps `[N, num_features]` to `[N, num_classes
 `--load` option.
 
 Load a trained model, specify the filename (no filetype suffix).
+
+## Metric
+
+Assume that $f_1, f_2 \in \mathbb{R}^{N \times F}$, where $N$ and $F$ represent the batch size and the number of features, respectively.
+
+### MMDLoss
+
+### KMomenLoss
