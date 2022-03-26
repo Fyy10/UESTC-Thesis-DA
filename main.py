@@ -2,7 +2,9 @@ import model.CNN as CNN
 import model.ViT as ViT
 # NOTE: do not use aligned d5 dataset
 from dataset.DigitFive import DigitFiveDataset
+from metric.k_moment import KMomentLoss
 import torch
+import torch.optim
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import argparse
@@ -231,6 +233,7 @@ def train(args, feature_extractor, classifier, dataloader):
 
     # loss function
     cross_entropy = nn.CrossEntropyLoss()
+    k_moment = KMomentLoss(k=4)
 
     # optimizer
     optim_f = None
@@ -238,6 +241,13 @@ def train(args, feature_extractor, classifier, dataloader):
     if args.optim == 'adam':
         optim_f = torch.optim.Adam(feature_extractor.parameters(), lr=args.lr)
         optim_c = torch.optim.Adam(classifier.parameters(), lr=args.lr)
+    if args.optim == 'adamw':
+        optim_f = torch.optim.AdamW(feature_extractor.parameters(), lr=args.lr)
+        optim_c = torch.optim.AdamW(classifier.parameters(), lr=args.lr)
+    if args.optim == 'sgd':
+        optim_f = torch.optim.SGD(feature_extractor.parameters(), lr=args.lr)
+        optim_c = torch.optim.SGD(classifier.parameters(), lr=args.lr)
+    # TODO: complete other optimizers
 
     n_iter = 0
     best_acc = 0
@@ -246,8 +256,15 @@ def train(args, feature_extractor, classifier, dataloader):
         for batch, data in enumerate(tqdm(dataloader)):
             # data[DOMAIN]['image']: [N, C, H, W]
             # data[DOMAIN]['label']: [N,]
-            image = data[args.source]['image'].to(args.device)
-            label = data[args.source]['label'].type(torch.LongTensor).to(args.device)
+            image_source = data[args.source]['image'].to(args.device)
+            label_source = data[args.source]['label'].type(torch.LongTensor).to(args.device)
+            image_target = data[args.target]['image'].to(args.device)
+            label_target = data[args.target]['label'].type(torch.LongTensor).to(args.device)
+
+            image = torch.cat((image_source, image_target), dim=0)
+            label = torch.cat((label_source, label_target), dim=0)
+            # image: [2 * N, C, H, W]
+            # label: [2 * N,]
 
             # zero grad
             optim_f.zero_grad()
@@ -258,13 +275,20 @@ def train(args, feature_extractor, classifier, dataloader):
             # prediction
             pred = classifier(feature)
 
-            # predicted labels
-            _, pred_labels = pred.detach().topk(1, dim=1)
-            pred_labels = pred_labels.squeeze(dim=1)
-            # accuracy
-            batch_acc = (pred_labels == label).sum().item() / len(label)
+            feature_source, feature_target = torch.chunk(feature, 2, dim=0)
+            pred_source, pred_target = torch.chunk(pred, 2, dim=0)
+            # feature_source, feature_target: [N, num_features]
+            # pred_source, pred_target: [N, num_classes]
 
-            loss = cross_entropy(pred, label)
+            # predicted source labels
+            _, pred_source_labels = pred_source.detach().topk(1, dim=1)
+            pred_source_labels = pred_source_labels.squeeze(dim=1)
+            # source accuracy
+            batch_acc = (pred_source_labels == label_source).sum().item() / len(label_source)
+
+            loss_ce = cross_entropy(pred_source, label_source)
+            loss_km = k_moment(feature_source, feature_target)
+            loss = loss_ce + 1e-2 * loss_km
 
             # write loss and accuracy
             writer.add_scalar('train/' + args.source + '_to_' + args.target + '_loss', loss.item(), n_iter)
