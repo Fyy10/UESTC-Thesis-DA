@@ -158,6 +158,10 @@ A single fully-connected layer that maps `[N, num_features]` to `[N, num_classes
 `--optim` option.
 
 - adam
+- adamw
+- sgd
+- rmsprop
+- adamod
 
 ## Load model
 

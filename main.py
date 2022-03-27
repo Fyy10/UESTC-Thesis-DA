@@ -1,8 +1,9 @@
-import model.CNN as CNN
-import model.ViT as ViT
+from model import LeNet, Classifier
 # NOTE: do not use aligned d5 dataset
-from dataset.DigitFive import DigitFiveDataset
-from metric.k_moment import KMomentLoss
+from dataset import DigitFiveDataset
+from metric import KMomentLoss
+from optimizer import AdaMod
+
 import torch
 import torch.optim
 import torch.nn as nn
@@ -180,8 +181,8 @@ def main():
     feature_extractor = None
     classifier = None
     if args.model == 'lenet':
-        feature_extractor = CNN.LeNet().to(args.device)
-        classifier = CNN.Classifier(in_dim=84, out_dim=num_classes).to(args.device)
+        feature_extractor = LeNet().to(args.device)
+        classifier = Classifier(in_dim=84, out_dim=num_classes).to(args.device)
     # TODO: complete other models
 
     # load model if specified
@@ -196,7 +197,7 @@ def main():
 
 
 # train
-def train(args, feature_extractor, classifier, dataloader):
+def train(args: argparse.Namespace, feature_extractor: nn.Module, classifier: nn.Module, dataloader: DataLoader):
     """
     Train the model.
 
@@ -247,7 +248,12 @@ def train(args, feature_extractor, classifier, dataloader):
     if args.optim == 'sgd':
         optim_f = torch.optim.SGD(feature_extractor.parameters(), lr=args.lr)
         optim_c = torch.optim.SGD(classifier.parameters(), lr=args.lr)
-    # TODO: complete other optimizers
+    if args.optim == 'rmsprop':
+        optim_f = torch.optim.RMSprop(feature_extractor.parameters(), lr=args.lr)
+        optim_c = torch.optim.RMSprop(classifier.parameters(), lr=args.lr)
+    if args.optim == 'adamod':
+        optim_f = AdaMod(feature_extractor.parameters(), lr=args.lr)
+        optim_c = AdaMod(classifier.parameters(), lr=args.lr)
 
     n_iter = 0
     best_acc = 0
@@ -323,7 +329,7 @@ def train(args, feature_extractor, classifier, dataloader):
 
 
 # evaluate
-def evaluate(args, feature_extractor, classifier, dataloader, domain=None):
+def evaluate(args: argparse.Namespace, feature_extractor: nn.Module, classifier: nn.Module, dataloader: DataLoader, domain=None):
     """
     Evaluate the model.
 
