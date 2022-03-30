@@ -171,8 +171,30 @@ Load a trained model, specify the filename (no filetype suffix).
 
 ## Metric
 
-Assume that $f_1, f_2 \in \mathbb{R}^{N \times F}$, where $N$ and $F$ represent the batch size and the number of features, respectively.
+Assume that $F_{\mathcal{D}} \in \mathbb{R}^{N \times F}$, where $N$ and $F$ represent the batch size and the number of features, respectively.
 
 ### MMDLoss
 
+$$
+M M D(X, Y)=\left\|\frac{1}{n} \sum_{i=1}^{n} \phi\left(x_{i}\right)-\frac{1}{m} \sum_{j=1}^{m} \phi\left(y_{j}\right)\right\|_{H}^{2}
+$$
+
 ### KMomenLoss
+
+Multi-Source:
+
+$$
+\begin{aligned}
+&M D^{2}\left(\mathcal{D}_{S}, \mathcal{D}_{T}\right)=\frac{1}{N} \sum_{i=1}^{N}\left\|\mathbb{E}\left(F_{\mathcal{D}_{S_{i}}}^{k}\right)-\mathbb{E}\left(F_{\mathcal{D}_{T}}^{k}\right)\right\|_{2} \\
+&+\left(\begin{array}{c}
+N \\
+2
+\end{array}\right)^{-1} \sum_{i=1}^{N-1} \sum_{j=i+1}^{N}\left\|\mathbb{E}\left(F_{\mathcal{D}_{S_{i}}}^{k}\right)-\mathbb{E}\left(F_{\mathcal{D}_{S_{j}}}^{k}\right)\right\|_{2}
+\end{aligned}
+$$
+
+Single-Source:
+
+$$
+MD^2(\mathcal{D}_{S}, \mathcal{D}_{T}) = \sum_{i=1}^k\left\|\mathbb{E}\left(F_{\mathcal{D}_{S_{i}}}^{k}\right)-\mathbb{E}\left(F_{\mathcal{D}_{T}}^{k}\right)\right\|_2
+$$
