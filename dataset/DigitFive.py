@@ -418,6 +418,39 @@ def visualize_img(img):
     plt.show()
 
 
+# display a batch of images
+def visualize_img_batch(img_batch, num_samples=5):
+    """
+    Plot a batch of images
+
+    Args:
+        img_batch: batched data (dict), where data[DOMAIN]['image'] -> [N, C, H, W]
+    """
+    domains = ['mnist', 'mnistm', 'svhn', 'syn', 'usps']
+    plt.subplots_adjust(wspace=0, hspace=0)
+
+    for i, domain in enumerate(domains):
+        data = img_batch[domain]['image']
+        # data: [N, C, H, W]
+        for j in range(num_samples):
+            plt.subplot(len(domains), num_samples, i * num_samples + j + 1)
+            plt.axis('off')
+            img = data[j]
+            # img: [C, H, W]
+            # reverse normalize
+            img = img * 0.5 + 0.5
+            # reverse ToTensor scaling
+            img *= 255
+            # convert type to uint8
+            img = img.type(torch.uint8)
+            # Tensor to PIL
+            to_pil = transforms.ToPILImage()
+            img = to_pil(img)
+            plt.imshow(img)
+
+    plt.show()
+
+
 # test d5 dataset
 def test_d5():
     data_path = './data/Digit-Five'
@@ -446,8 +479,10 @@ def test_d5():
         # visualize image
         for img in data['mnist']['image']:
             # img: [C, H, W]
-            visualize_img(img)
+            # visualize_img(img)
+            pass
 
+        visualize_img_batch(data, 8)
         break
 
 
