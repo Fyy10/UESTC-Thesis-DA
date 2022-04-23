@@ -25,6 +25,22 @@ class LeNet(nn.Module):
         self.fc1 = nn.Linear(6 * 6 * 16, 120)
         self.fc2 = nn.Linear(120, 84)
 
+        self.init_param()
+
+    def init_param(self):
+        # conv1
+        nn.init.xavier_normal_(self.conv1.weight)
+        nn.init.normal_(self.conv1.bias, mean=0, std=0.01)
+        # conv2
+        nn.init.xavier_normal_(self.conv2.weight)
+        nn.init.normal_(self.conv2.bias, mean=0, std=0.01)
+        # fc1
+        nn.init.xavier_normal_(self.fc1.weight)
+        nn.init.normal_(self.fc1.bias, mean=0, std=0.01)
+        # fc2
+        nn.init.xavier_normal_(self.fc2.weight)
+        nn.init.normal_(self.fc2.bias, mean=0, std=0.01)
+
     def forward(self, x):
         # x: [N, 3, 28, 28] for [28, 28]
         # x: [N, 3, 32, 32] for [32, 32]
@@ -48,6 +64,74 @@ class LeNet(nn.Module):
         # [N, 120]
         x = torch.sigmoid(self.fc2(x))
         # [N, 84]
+        return x
+
+
+# 3conv2fc
+class Net_3conv2fc(nn.Module):
+    def __init__(self):
+        """
+        `3conv2fc` Model
+
+        Input size: 32x32
+
+        Feature dimension: 2048
+        """
+        super(Net_3conv2fc, self).__init__()
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=5, stride=1, padding=2)
+        self.bn1 = nn.BatchNorm2d(64)
+        self.conv2 = nn.Conv2d(64, 64, kernel_size=5, stride=1, padding=2)
+        self.bn2 = nn.BatchNorm2d(64)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=5, stride=1, padding=2)
+        self.bn3 = nn.BatchNorm2d(128)
+        self.fc1 = nn.Linear(8192, 3072)
+        self.bn1_fc = nn.BatchNorm1d(3072)
+        self.fc2 = nn.Linear(3072, 2048)
+        self.bn2_fc = nn.BatchNorm1d(2048)
+
+        self.init_param()
+
+    def init_param(self):
+        # conv1
+        nn.init.xavier_normal_(self.conv1.weight)
+        nn.init.normal_(self.conv1.bias, mean=0, std=0.01)
+        # bn1
+        nn.init.normal_(self.bn1.weight, mean=0, std=0.01)
+        nn.init.normal_(self.bn1.bias, mean=0, std=0.01)
+        # conv2
+        nn.init.xavier_normal_(self.conv2.weight)
+        nn.init.normal_(self.conv2.bias, mean=0, std=0.01)
+        # bn2
+        nn.init.normal_(self.bn2.weight, mean=0, std=0.01)
+        nn.init.normal_(self.bn2.bias, mean=0, std=0.01)
+        # conv3
+        nn.init.xavier_normal_(self.conv3.weight)
+        nn.init.normal_(self.conv3.bias, mean=0, std=0.01)
+        # bn3
+        nn.init.normal_(self.bn3.weight, mean=0, std=0.01)
+        nn.init.normal_(self.bn3.bias, mean=0, std=0.01)
+        # fc1
+        nn.init.xavier_normal_(self.fc1.weight)
+        nn.init.normal_(self.fc1.bias, mean=0, std=0.01)
+        # bn1_fc
+        nn.init.normal_(self.bn1_fc.weight, mean=0, std=0.01)
+        nn.init.normal_(self.bn1_fc.bias, mean=0, std=0.01)
+        # fc2
+        nn.init.xavier_normal_(self.fc2.weight)
+        nn.init.normal_(self.fc2.bias, mean=0, std=0.01)
+        # bn2_fc
+        nn.init.normal_(self.bn2_fc.weight, mean=0, std=0.01)
+        nn.init.normal_(self.bn2_fc.bias, mean=0, std=0.01)
+
+    def forward(self, x):
+        x = torch.max_pool2d(torch.relu(self.bn1(self.conv1(x))), stride=2, kernel_size=3, padding=1)
+        x = torch.max_pool2d(torch.relu(self.bn2(self.conv2(x))), stride=2, kernel_size=3, padding=1)
+        x = torch.relu(self.bn3(self.conv3(x)))
+        x = x.view(x.size(0), 8192)
+        x = torch.relu(self.bn1_fc(self.fc1(x)))
+        x = torch.dropout(x, p=0.5, train=self.training)
+        x = torch.relu(self.bn2_fc(self.fc2(x)))
+        # x: [batch_size, num_features=2048]
         return x
 
 
@@ -187,6 +271,18 @@ def test_lenet():
     print('out:', out.size())
 
 
+def test_3conv2fc():
+    feature = Net_3conv2fc()
+    classifier = Classifier(2048, 10)
+    print(feature)
+    print(classifier)
+    data = torch.randn((10, 3, 32, 32))
+    feat = feature(data)
+    print('feature:', feat.size())
+    out = classifier(feat)
+    print('out:', out.size())
+
+
 def test_alexnet():
     feature = AlexNet().to(0)
     classifier = Classifier(4096, 10).to(0)
@@ -226,5 +322,6 @@ def test_resnet152():
 # test model
 if __name__ == '__main__':
     # test_lenet()
+    test_3conv2fc()
     # test_alexnet()
-    test_alexnet_org()
+    # test_alexnet_org()
