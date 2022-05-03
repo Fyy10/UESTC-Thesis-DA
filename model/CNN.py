@@ -25,7 +25,8 @@ class LeNet(nn.Module):
         self.fc1 = nn.Linear(6 * 6 * 16, 120)
         self.fc2 = nn.Linear(120, 84)
 
-        self.init_param()
+        # there is no need to init param, PyTorch will do it for you
+        # self.init_param()
 
     def init_param(self):
         # conv1
@@ -89,7 +90,8 @@ class Net_3conv2fc(nn.Module):
         self.fc2 = nn.Linear(3072, 2048)
         self.bn2_fc = nn.BatchNorm1d(2048)
 
-        self.init_param()
+        # there is no need to init param, PyTorch will do it for you
+        # self.init_param()
 
     def init_param(self):
         # conv1
