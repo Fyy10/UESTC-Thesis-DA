@@ -4,6 +4,29 @@ Undergraduate thesis at UESTC, a DA model.
 
 NOTE: The project is in progress.
 
+## Table of Contents
+
+- [UESTC-Thesis-DA](#uestc-thesis-da)
+  - [Table of Contents](#table-of-contents)
+  - [Usage](#usage)
+  - [Datasets](#datasets)
+    - [Digit-Five (d5)](#digit-five-d5)
+    - [Office-31 (o31)](#office-31-o31)
+    - [DomainNet (dn)](#domainnet-dn)
+  - [Models](#models)
+    - [Feature Extractor](#feature-extractor)
+      - [LeNet-5 (lenet)](#lenet-5-lenet)
+      - [AlexNet (alexnet)](#alexnet-alexnet)
+      - [AlexNetOrg (alexnet_org)](#alexnetorg-alexnet_org)
+      - [ResNet50 (resnet50)](#resnet50-resnet50)
+      - [ViT-B_16 (vit_b16)](#vit-b_16-vit_b16)
+    - [Classifier](#classifier)
+  - [Optimizer](#optimizer)
+  - [Load model](#load-model)
+  - [Metric](#metric)
+    - [MMDLoss](#mmdloss)
+    - [KMomenLoss](#kmomenloss)
+
 ## Usage
 
 Use the following command to see help information:
