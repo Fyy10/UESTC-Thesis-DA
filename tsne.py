@@ -8,8 +8,8 @@ from sklearn.manifold import TSNE
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
-data_path = './data/Digit-Five'
-checkpoint_path = './checkpoint/lenet_mnist_to_mnistm_batch128_adam_lr0.001_0.feat'
+data_path = '/mnt/data/fyy'
+checkpoint_path = './checkpoint/lenet_mnist_to_mnistm_batch128_adam_lr0.001_1.feat'
 # num of samples to visualize for each domain
 num_samples = 3000
 source = 'mnist'
@@ -52,4 +52,4 @@ plt.scatter(feat_2[num_samples:, 0], feat_2[num_samples:, 1], c='r', s=5)
 plt.axis('off')
 # plt.xticks([])
 # plt.yticks([])
-plt.savefig('visualize.pdf', format='pdf')
+plt.savefig('tsne.pdf', format='pdf')
