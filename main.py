@@ -2,6 +2,7 @@ from model import LeNet, Classifier
 # NOTE: do not use aligned d5 dataset
 from dataset import DigitFiveDataset
 from metric import KMomentLoss
+from model.CNN import AlexNet, AlexNetOrg, Net_3conv2fc
 from optimizer import AdaMod
 
 import torch
@@ -118,7 +119,7 @@ def main():
     print(args)
 
     # check valid model
-    if args.model not in ['lenet', 'alexnet', 'alexnet_org', 'resnet50', 'vit']:
+    if args.model not in ['lenet', '3conv2fc', 'alexnet', 'alexnet_org', 'resnet50', 'vit']:
         raise ValueError(args.model + ' is not a valid model')
     # check valid dataset
     if args.dataset not in ['d5', 'o31', 'dn']:
@@ -168,8 +169,9 @@ def main():
     train_dataset = None
     test_dataset = None
     if args.dataset == 'd5':
-        train_dataset = DigitFiveDataset('./data/Digit-Five', train=True, transform=transform)
-        test_dataset = DigitFiveDataset('./data/Digit-Five', train=False, transform=transform)
+        data_path = '/mnt/data/fyy'
+        train_dataset = DigitFiveDataset(data_path=data_path, train=True, transform=transform)
+        test_dataset = DigitFiveDataset(data_path=data_path, train=False, transform=transform)
     # TODO: load other datasets
 
     # dataloader
@@ -183,6 +185,15 @@ def main():
     if args.model == 'lenet':
         feature_extractor = LeNet().to(args.device)
         classifier = Classifier(in_dim=84, out_dim=num_classes).to(args.device)
+    if args.model == '3conv2fc':
+        feature_extractor = Net_3conv2fc().to(args.device)
+        classifier = Classifier(in_dim=2048, out_dim=num_classes).to(args.device)
+    if args.model == 'alexnet':
+        feature_extractor = AlexNet().to(args.device)
+        classifier = Classifier(in_dim=4096, out_dim=num_classes).to(args.device)
+    if args.model == 'alexnet_org':
+        feature_extractor = AlexNetOrg().to(args.device)
+        classifier = Classifier(in_dim=4096, out_dim=num_classes).to(args.device)
     # TODO: complete other models
 
     # load model if specified
